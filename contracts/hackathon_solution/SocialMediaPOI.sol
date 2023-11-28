@@ -34,6 +34,9 @@ contract SocialMediaAuthentication {
     //Type of Account whether Personal, Organization or Any
     uint256 private _accountType;
 
+    //User Address
+    address private _userAddress;
+
     // Counter to keep track of the last assigned user ID
     uint256 private nextUserID;
 
@@ -57,18 +60,24 @@ contract SocialMediaAuthentication {
     error SocailMediaPOI__NoIdentityNFT();
 
     // Error to throw when an Attribute is Insufficient 
-    error SocailMediaPOI__InvalidUserType(uint256 userType, uint256 required);
+    error SocailMediaPOI__InvalidUserType(uint256 userType);
 
 
     // EVENTS
+
+    //Event to emit once user is authenticated
     event UserAuthenticated(address indexed user);
 
+    //Event to Emit if user autnentication was not successful
     event UserNotAuthenticated(address indexed user);
 
+    //Event to emit if user supplies an Invalid Account Type
     event InvalidAccountType(uint256 typeProvided);
 
     // Event to emit when a new user ID is generated
     event UserIDGenerated(address indexed user, uint256 userID);
+
+    event POIAddressUpdated(address poi);
 
     modifier onlyVerifiedUser() {
         // ensure the user address is not zero
@@ -76,7 +85,7 @@ contract SocialMediaAuthentication {
 
 
         // check the verification status
-        bool isVerified = _proofOfIdentity.
+        bool isVerified = true;
         emit UserAuthenticated(_userAddress);
         require(isVerified, "SocialMediaAuthenticator: User not verified");
 
@@ -95,23 +104,23 @@ contract SocialMediaAuthentication {
 
     constructor(
         address proofOfIdentity_,
-        uint256 userType_,
+        uint256 accountType_,
         address nft_,
         uint256 nftId_
     ) {
-        if (userType_ == 0 || userType_ > _ALL) {
-            revert SocailMediaPOI__InvalidUserType(userType_);
+        if (accountType_ == 0 || accountType_ > _ANY) {
+            revert SocailMediaPOI__InvalidUserType(accountType_);
         }
         _setPOIAddress(proofOfIdentity_);
 
-        _userType = userType_;
+        _accountType = accountType_;
 
         _nft = IERC721(nft_);
         _nftId = nftId_;
     }
 
     function _setPOIAddress(address poi) private {
-        if (poi == address(0)) revert AuctionPOI__ZeroAddress();
+        if (poi == address(0)) revert SocialMediaPOI__ZeroAddress();
         _proofOfIdentity = IProofOfIdentity(poi);
         emit POIAddressUpdated(poi);
     }
@@ -126,7 +135,7 @@ contract SocialMediaAuthentication {
 
 
     function authenticateUser(
-        address _userAddress,
+        address userAddress_,
         string calldata _countryCode,
         bool _proofOfLiveliness,
         uint256 _userType,
@@ -134,22 +143,20 @@ contract SocialMediaAuthentication {
         string calldata _uri
     ) external {
 
-        require(_userAddress != 0, "Invalid Wallet Address");
-
-        uint256 newUserID = nextUserID++;
+        require(userAddress_ != address (0), "Invalid Wallet Address");
             
 
         // Issue Proof of Identity NFT
         _proofOfIdentity.issueIdentity(
             msg.sender,
-            newUserID,
+            _proofOfLiveliness,
             _countryCode,
             _proofOfLiveliness,
             _userType,
             _expiries,
             _uri
         );
-    };
+    }
     
 
     //Function to Check if account has the NFT ID
@@ -175,7 +182,7 @@ contract SocialMediaAuthentication {
 
     // Function to Check the validity of a User Account Type
     function _checkUserType(address account) private view returns (bool) {
-        uint256 user = _proofOfIdentity.getUserType(account);
+        (uint256 user, ,) = _proofOfIdentity.getUserType(account);
         if (!_hasType(user)) return false;
         return true;
     }
