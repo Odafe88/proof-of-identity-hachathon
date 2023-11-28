@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-import "./IProofOfIdentity.sol";
+import "../proof-of-identity/interfaces/IProofOfIdentity.sol";
 
 contract SocialMediaAuthentication {
 
