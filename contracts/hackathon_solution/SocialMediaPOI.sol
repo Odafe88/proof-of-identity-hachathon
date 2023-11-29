@@ -6,6 +6,12 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 import "../proof-of-identity/interfaces/IProofOfIdentity.sol";
 
+/**
+ * @title Social Media Authenticator
+ * @notice A Social Media Authenticator that utilizes Haven1 Proof of Identity interface for Unique Identity  Issuance
+ * @dev A Social Media Authenticator that utilizes Haven1 Proof of Identity interface for Unique Identity  Issuance
+ */
+
 contract SocialMediaAuthentication {
 
     //STATE VARIABLES
@@ -50,19 +56,21 @@ contract SocialMediaAuthentication {
     IERC721 private _nft;
 
     // The ID of the NFT prize.
-
     uint256 private _nftId;
 
-    // Error to throw when the zero address has been supplied and it is not allowed.
-    error SocialMediaPOI__ZeroAddress();
+    //User Struct
+    struct User {
+        address walletAddress;
+        uint256 userID;
+        uint256 _accountType;
+        string countryCode;
+    }
 
-    // Error to throw if user has no Identity NFT
-    error SocailMediaPOI__NoIdentityNFT();
-
-    // Error to throw when an Attribute is Insufficient 
-    error SocailMediaPOI__InvalidUserType(uint256 userType);
+    //Mapping Users to an Array
+    mapping (uint256 => User) private users;
 
 
+    
     // EVENTS
 
     //Event to emit once user is authenticated
@@ -77,7 +85,20 @@ contract SocialMediaAuthentication {
     // Event to emit when a new user ID is generated
     event UserIDGenerated(address indexed user, uint256 userID);
 
+    // Event to EMit once POI address is updates
     event POIAddressUpdated(address poi);
+
+
+    //ERRORS
+
+    // Error to throw when the zero address has been supplied and it is not allowed.
+    error SocialMediaPOI__ZeroAddress();
+
+    // Error to throw if user has no Identity NFT
+    error SocailMediaPOI__NoIdentityNFT();
+
+    // Error to throw when an Attribute is Insufficient 
+    error SocailMediaPOI__InvalidUserType(uint256 userType);
 
     modifier onlyVerifiedUser() {
         // ensure the user address is not zero
@@ -92,32 +113,8 @@ contract SocialMediaAuthentication {
         _;
     }
 
-    struct User {
-        address walletAddress;
-        uint256 userID;
-        uint256 _accountType;
-        string countryCode;
-    }
-
-    mapping (uint256 => User) public users;
-
-
-    constructor(
-        address proofOfIdentity_,
-        uint256 accountType_,
-        address nft_,
-        uint256 nftId_
-    ) {
-        if (accountType_ == 0 || accountType_ > _ANY) {
-            revert SocailMediaPOI__InvalidUserType(accountType_);
-        }
-        _setPOIAddress(proofOfIdentity_);
-
-        _accountType = accountType_;
-
-        _nft = IERC721(nft_);
-        _nftId = nftId_;
-    }
+    
+    //FUNCTIONS
 
     function _setPOIAddress(address poi) private {
         if (poi == address(0)) revert SocialMediaPOI__ZeroAddress();
@@ -187,5 +184,23 @@ contract SocialMediaAuthentication {
         return true;
     }
 
+
+    //CONSTRUCTOR
+    constructor(
+        address proofOfIdentity_,
+        uint256 accountType_,
+        address nft_,
+        uint256 nftId_
+    ) {
+        if (accountType_ == 0 || accountType_ > _ANY) {
+            revert SocailMediaPOI__InvalidUserType(accountType_);
+        }
+        _setPOIAddress(proofOfIdentity_);
+
+        _accountType = accountType_;
+
+        _nft = IERC721(nft_);
+        _nftId = nftId_;
+    }
     
 }
