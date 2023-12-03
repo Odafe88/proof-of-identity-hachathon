@@ -18,44 +18,69 @@ contract SocialMediaAuthentication {
 
     /**
      * @dev Account Type: Personal 
-     * Only Accounts Marked with Personal will be verified
+     * @notice Only Accounts Marked with Personal will be verified
     **/
 
     uint256 private constant _PERSONAL = 1;
 
     /**
      * @dev Account Type: Organization 
-     * Only Accounts Marked with Organization will be verified
+     * @notice Only Accounts Marked with Organization will be verified
     **/
 
     uint256 private constant _ORGANIZATION = 2;
 
     /**
      * @dev Account Type: Any 
-     * Accounts Marked with Any will be verified
+     * @notice Accounts Marked with Any will be verified
     **/
 
     uint256 private constant _ANY = 3;
 
-    //Type of Account whether Personal, Organization or Any
+    /**
+     * @dev Account Type 
+     * @notice An Integer type to store the 
+    **/
+
     uint256 private _accountType;
 
-    //User Address
+    /**
+     * @dev User Address 
+     * @notice An address variable to store the User's Address 
+    **/
+
     address private _userAddress;
 
-    // Counter to keep track of the last assigned user ID
+    /**
+     * @dev Next User Id 
+     * @notice Counter to keep track of the last assigned user ID 
+    **/
     uint256 private nextUserID;
 
-    // Variable to store Account eligibility
+
+    /**
+     * @dev isEligible
+     * @notice Boolean Variable to store Account eligibility
+    **/
     bool private _isEligible;
 
-    // The Proof if Idetity Contract
+    
+    /**
+    * @dev Proof of Identity
+    * @notice Initializing the Proof of Identity Interface
+    **/
     IProofOfIdentity public _proofOfIdentity;
 
-    // The NFT prize.
+    /**
+     * @dev NFT
+     * @notice Initializing nft Token interface
+    **/
     IERC721 private _nft;
 
-    // The ID of the NFT prize.
+    /**
+     * @dev NFT ID
+     * @notice Integer to store NFT ID
+    **/
     uint256 private _nftId;
 
     //User Struct
@@ -123,7 +148,11 @@ contract SocialMediaAuthentication {
     }
 
     
-
+    /** 
+     * @dev Function: Account Eligibility
+     * @notice Checks if an Account is Eligible to be verified
+     * @param account Address of the Account to be checked
+    **/
     function accountEligible(address account) external view returns (bool) {
         if (!_hasID(account)) return false;
         if (!_checkUserType(account)) return false;
@@ -131,6 +160,16 @@ contract SocialMediaAuthentication {
     }
 
 
+    /** 
+     * @dev Function: Account Eligibility
+     * @notice Checks if an Account is Eligible to be verified
+     * @param userAddress_ Address of the User to be Authenticated
+     * @param _countryCode Country code of the User to be Authenticated
+     * @param _proofOfLiveliness proof of Liveliness provided by the POI
+     * @param _userType The Type of Account the user has
+     * @param _expiries When  the account expires
+     * @param _uri 
+    **/
     function authenticateUser(
         address userAddress_,
         string calldata _countryCode,
@@ -155,29 +194,41 @@ contract SocialMediaAuthentication {
         );
     }
     
-
-    //Function to Check if account has the NFT ID
+    /** 
+     * @dev Function to Check if an Account has been Issued the NFT
+     * @param account Address of the Account to be checked
+    **/
     function _hasID(address account) private view returns (bool) {
         return _proofOfIdentity.balanceOf(account) > 0;
     }
 
-    //FUnction to check the type of Account meets the criteria
+
+    /** 
+     * @dev Function to Check the type of Account or if it has an Account
+     * @param userType User Type of Account
+    **/
     function _hasType(uint256 userType) private view returns (bool) {
         return (_accountType & userType) > 0;
     }
 
-    //Funtion to get that Return the Address of the NFT and the ID
+    /**
+     * @dev Funtion to get that Return the Address of the NFT and the ID
+    **/
     function getNFT() external view returns (address, uint256) {
         return (address(_nft), _nftId);
     }
 
-
-    //Function to check if an Account is suspended 
+    /**
+     * @dev Function to check if an Account is suspended 
+     * @param account Address of Account
+     */
     function _isSuspended(address account) private view returns (bool) {
         return _proofOfIdentity.isSuspended(account);
     }
 
-    // Function to Check the validity of a User Account Type
+    /**
+     * @dev Function to Check the validity of a User Account Type
+    **/
     function _checkUserType(address account) private view returns (bool) {
         (uint256 user, ,) = _proofOfIdentity.getUserType(account);
         if (!_hasType(user)) return false;
@@ -185,7 +236,13 @@ contract SocialMediaAuthentication {
     }
 
 
-    //CONSTRUCTOR
+    /**
+     * 
+     * @param proofOfIdentity_  Proof of Identity COntract Address
+     * @param accountType_  Type of Account
+     * @param nft_  Address of the NFT
+     * @param nftId_  ID of the NFT
+     */
     constructor(
         address proofOfIdentity_,
         uint256 accountType_,
